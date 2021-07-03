@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Rays">
+      <UniqueIdentifier>{4dbf1aff-7c41-455a-a4fb-6eb191bb75c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\SceneObjects">
+      <UniqueIdentifier>{5da07988-4a6f-4269-bcdf-bdb8fcd7a7ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Ray tracing">
+      <UniqueIdentifier>{b01bfe05-5b63-4612-8b21-3560902519a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Additional files &amp; lib">
+      <UniqueIdentifier>{e57ae4f2-d4b5-4bfc-85be-0b9904538a88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\SceneObjects\Objects">
+      <UniqueIdentifier>{9a67f811-6b0e-41b6-be4a-c482d69bcfb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\SceneObjects\Lights">
+      <UniqueIdentifier>{57ac314f-6707-4593-80bd-e11d659cea5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\%27vec3%27 lib">
+      <UniqueIdentifier>{5d4c9c60-53a6-40a3-8388-d2db1bd9c019}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTracing.cpp">
+      <Filter>Файлы ресурсов\Ray tracing</Filter>
+    </ClCompile>
+    <ClCompile Include="objects.cpp">
+      <Filter>Файлы ресурсов\SceneObjects\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="rays.cpp">
+      <Filter>Файлы ресурсов\Rays</Filter>
+    </ClCompile>
+    <ClCompile Include="lights.cpp">
+      <Filter>Файлы ресурсов\SceneObjects\Lights</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="labengine.h">
+      <Filter>Файлы ресурсов\Additional files &amp; lib</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTracing.h">
+      <Filter>Файлы ресурсов\Ray tracing</Filter>
+    </ClInclude>
+    <ClInclude Include="rays.h">
+      <Filter>Файлы ресурсов\Rays</Filter>
+    </ClInclude>
+    <ClInclude Include="objects.h">
+      <Filter>Файлы ресурсов\SceneObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="vec3.h">
+      <Filter>Файлы ресурсов\%27vec3%27 lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
