@@ -44,11 +44,15 @@ public:
 };
 
 class sphere : public object {
-private:
+protected:
   vec3 center;
   double radius;
 public:
+  sphere();
   sphere(const vec3& center, const double& radius, const material& mtr);
+
+  vec3 GetCenter();
+  double GetRadius();
 
   int CheckCollision(ray& currentRay);
   vec3 GetNormalToPoint(ray& currentRay);
@@ -74,6 +78,33 @@ private:
 public:
   chessRect(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn, const int& gridSizeW, const int& gridSizeH, const material& mtr1, const material& mtr2);
   
+  material GetMaterial(ray& currentRay);
+};
+
+class box : public rectangle {
+protected:
+  // dot1 - dot to corner
+  vec3 dot1, dot2, dot3, dot4;
+public:
+  box();
+  box(const vec3& dot1, const vec3& dot2, const vec3& dot3, const vec3& dot4, const material& mtr);
+
+  int isInBox(vec3& vec);
+
+  int CheckCollision(ray& currentRay);
+  vec3 GetNormalToPoint(ray& currentRay);
+};
+
+class boxAndSphere : public box {
+protected:
+  box bx;
+  sphere sph;
+  material secondMtr;
+public:
+  boxAndSphere(const vec3& dot1, const vec3& dot2, const vec3& dot3, const vec3& dot4, const vec3& center, const double& radius, const material& mtr1, const material& mtr2);
+
+  int CheckCollision(ray& currentRay);
+  vec3 GetNormalToPoint(ray& currentRay);
   material GetMaterial(ray& currentRay);
 };
 

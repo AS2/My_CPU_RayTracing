@@ -126,8 +126,8 @@ void scene::render() {
                        std::min(255, (int)(pixelColor.getY() * 255)),
                        std::min(255, (int)(pixelColor.getZ() * 255)));
         LabDrawPoint(x, y);
+        LabDrawFlush();
       }
-      LabDrawFlush();
     }
     getchar();
     LabTerm();      // Завершение работы
