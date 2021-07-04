@@ -23,19 +23,19 @@ object::object() {
   mater = material();
 }
 
-material object::GetMaterial(ray& currentRay) {
+material object::GetMaterial(const ray& currentRay) const {
   return mater;
 }
 
-int object::CheckCollision(ray& currentRay) {
+int object::CheckCollision(const ray& currentRay) const {
   return -1;
 }
 
-vec3 object::GetNormalToPoint(ray& currentRay) {
+vec3 object::GetNormalToPoint(const ray& currentRay) const {
   return vec3(0, 0, 0);
 }
 
-double object::cosVec3(vec3& v1, vec3& v2) {
+double object::cosVec3(const vec3& v1, const vec3& v2) const {
   return (v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ()) / (v1.length() * v2.length());
 }
 
@@ -46,7 +46,7 @@ plane::plane(const vec3& normal, const vec3& center, const material& mtr) {
   this->center = center;
 }
 
-int plane::CheckCollision(ray& currentRay) {
+int plane::CheckCollision(const ray& currentRay) const {
   vec3 pos1 = currentRay.GetPos() - center, pos2 = (currentRay.GetPos() + currentRay.GetDir() * RAY_STEP - center);
 
   if (cosVec3(pos1, normal) * cosVec3(pos2, normal) <= 0)
@@ -54,7 +54,7 @@ int plane::CheckCollision(ray& currentRay) {
   return 0;
 }
 
-vec3 plane::GetNormalToPoint(ray& currentRay) {
+vec3 plane::GetNormalToPoint(const ray& currentRay) const {
   return normal.normal();
 }
 
@@ -74,12 +74,12 @@ rectangle::rectangle(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn,
   this->LUcorn = LUcorn;
 }
 
-double rectangle::ThreeVecMul(vec3& v1, vec3& v2, vec3& v3) {
+double rectangle::ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3) const {
   return (v1.getX() * v2.getY() * v3.getZ() + v1.getY() * v2.getZ() * v3.getX() + v1.getZ() * v2.getX() * v3.getY()) -
          (v1.getZ() * v2.getY() * v3.getX() + v1.getY() * v2.getX() * v3.getZ() + v1.getX() * v2.getZ() * v3.getY());
 }
 
-int rectangle::CheckCollision(ray& currentRay) {
+int rectangle::CheckCollision(const ray& currentRay) const {
   // check collinear vecs
   vec3 v1 = (LUcorn - LDcorn), v2 = (RDcorn - LDcorn), 
     v3_1 = (currentRay.GetPos() - LDcorn),
@@ -117,7 +117,7 @@ int rectangle::CheckCollision(ray& currentRay) {
     return 0;
 }
 
-vec3 rectangle::GetNormalToPoint(ray& currentRay) {
+vec3 rectangle::GetNormalToPoint(const ray& currentRay) const {
   vec3 v1 = (LUcorn - LDcorn),
     v2 = (RDcorn - LDcorn), normal, dir = currentRay.GetDir();
   double x, y, z;
@@ -160,7 +160,7 @@ chessRect::chessRect(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn,
   this->gridSizeH = gridSizeH;
 }
 
-material chessRect::GetMaterial(ray& currentRay) {
+material chessRect::GetMaterial(const ray& currentRay) const {
   vec3 v1 = (LUcorn - LDcorn), v2 = (RDcorn - LDcorn),
        dotOnPlane = currentRay.GetPos(), newVec = (dotOnPlane - LDcorn),
        xPart = v2.normal() * newVec.length() * cosVec3(newVec, v2),
@@ -203,7 +203,7 @@ box::box(const vec3& dot1, const vec3& dot2, const vec3& dot3, const vec3& dot4,
   this->dot4 = dot4;
 }
 
-int box::isInBox(vec3& vec) {
+int box::isInBox(const vec3& vec) const {
   vec3 e1 = (dot2 - dot1), e2 = (dot3 - dot1), e3 = (dot4 - dot1), pVec = vec - dot1;
   vec3 zPart = e3.normal() * cosVec3(pVec, e3) * pVec.length(), pVecProj = pVec - zPart,
        yPart = e2.normal() * cosVec3(pVecProj, e2) * pVecProj.length(),
@@ -240,14 +240,14 @@ int box::isInBox(vec3& vec) {
     return 0;
 }
 
-int box::CheckCollision(ray& currentRay) {
+int box::CheckCollision(const ray& currentRay) const {
   vec3 pos = currentRay.GetPos(), nextPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP;
   if (isInBox(pos) == 0 && isInBox(nextPos) == 1)
     return 1;
   return 0;
 }
 
-vec3 box::GetNormalToPoint(ray& currentRay) {
+vec3 box::GetNormalToPoint(const ray& currentRay) const {
   vec3 dot5 = dot4 + (dot2 - dot1),
        dot6 = dot4 + (dot3 - dot1),
        dot7 = dot6 + (dot2 - dot1);
@@ -287,22 +287,22 @@ sphere::sphere(const vec3& center, const double& radius, const material& mtr) {
   this->radius = radius;
 }
 
-vec3 sphere::GetCenter() {
+vec3 sphere::GetCenter() const {
   return center;
 }
 
-double sphere::GetRadius() {
+double sphere::GetRadius() const {
   return radius;
 }
 
-int sphere::CheckCollision(ray& currentRay) {
+int sphere::CheckCollision(const ray& currentRay) const {
   if ((currentRay.GetPos() - center).length() > radius &&
     (currentRay.GetPos() + currentRay.GetDir() * RAY_STEP - center).length() <= radius)
     return 1;
   return 0;
 }
 
-vec3 sphere::GetNormalToPoint(ray& currentRay) {
+vec3 sphere::GetNormalToPoint(const ray& currentRay) const {
   return (currentRay.GetPos() - center).normal();
 }
 
@@ -314,31 +314,33 @@ boxAndSphere::boxAndSphere(const vec3& dot1, const vec3& dot2, const vec3& dot3,
   this->secondMtr = mtr2;
 }
 
-int boxAndSphere::CheckCollision(ray& currentRay) {
-  vec3 pos = currentRay.GetPos(), newPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP, sphCenter = sph.GetCenter();
-  double rad = sph.GetRadius();
-
-  if ((bx.CheckCollision(currentRay) == 1 && (pos - sphCenter).length() > rad && (newPos - sphCenter).length() > rad) || 
-    (bx.isInBox(pos) == 1 && (pos - sphCenter).length() <= rad && (newPos - sphCenter).length() > rad))
+int boxAndSphere::CheckCollision(const ray& currentRay) const {
+  vec3 pos = currentRay.GetPos(), newPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP;
+  
+  if ((bx.CheckCollision(currentRay) == 1 && (pos - sph.GetCenter()).length() > sph.GetRadius() && (newPos - sph.GetCenter()).length() > sph.GetRadius()) ||
+    (bx.isInBox(pos) == 1 && (pos - sph.GetCenter()).length() <= sph.GetRadius() && (newPos - sph.GetCenter()).length() > sph.GetRadius()))
     return 1;
   return 0;
 }
 
-vec3 boxAndSphere::GetNormalToPoint(ray & currentRay) {
-  vec3 pos = currentRay.GetPos(), newPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP, sphCenter = sph.GetCenter();
-  double rad = sph.GetRadius();
+vec3 boxAndSphere::GetNormalToPoint(const ray & currentRay) const {
+  vec3 pos = currentRay.GetPos(), newPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP;
 
-  if ((bx.CheckCollision(currentRay) == 1 && (pos - sphCenter).length() > rad && (newPos - sphCenter).length() > rad))
+  if ((bx.CheckCollision(currentRay) == 1 &&
+      (pos - sph.GetCenter()).length() > sph.GetRadius() &&
+      (newPos - sph.GetCenter()).length() > sph.GetRadius()))
     return bx.GetNormalToPoint(currentRay);
   else
-    return (pos - sphCenter).normal();
+    return (pos - sph.GetCenter()).normal();
 }
 
-material boxAndSphere::GetMaterial(ray& currentRay) {
-  vec3 pos = currentRay.GetPos(), newPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP, sphCenter = sph.GetCenter();
+material boxAndSphere::GetMaterial(const ray& currentRay) const {
+  vec3 pos = currentRay.GetPos(), newPos = currentRay.GetPos() + currentRay.GetDir() * RAY_STEP;
   double rad = sph.GetRadius();
 
-  if ((bx.CheckCollision(currentRay) == 1 && (pos - sphCenter).length() > rad && (newPos - sphCenter).length() > rad))
+  if ((bx.CheckCollision(currentRay) == 1 &&
+      (pos - sph.GetCenter()).length() > rad &&
+      (newPos - sph.GetCenter()).length() > rad))
     return mater;
   else
     return secondMtr;

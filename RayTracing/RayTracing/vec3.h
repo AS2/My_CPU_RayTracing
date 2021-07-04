@@ -7,7 +7,7 @@ class vec3 {
 private:
   double X, Y, Z;
 
-  float fastRevSqrt(float number) {
+  float fastRevSqrt(float number) const {
     int i;
     float x2, y;
     const float threehalfs = 1.5F;
@@ -35,27 +35,27 @@ public:
   }
 
   // methods
-  double getX() {
+  double getX() const {
     return X;
   }
 
-  double getY() {
+  double getY() const {
     return Y;
   }
 
-  double getZ() {
+  double getZ() const {
       return Z;
   }
 
-  vec3 normal() {
-    if (X == 0 && Y == 0 && Z == 0)
+  vec3 normal() const {
+      if (X == 0 && Y == 0 && Z == 0)
       return vec3(0, 0, 0);
 
     double length = sqrt(X * X + Y * Y + Z * Z);
     return vec3(X / length, Y / length, Z / length);
   }
 
-  vec3 fastNormal() {
+  vec3 fastNormal() const {
     if (X == 0 && Y == 0 && Z == 0)
       return vec3(0, 0, 0);
 
@@ -63,25 +63,25 @@ public:
     return vec3(X * length, Y * length, Z * length);
   }
 
-  double vecMul(const vec3& vec) {
+  double vecMul(const vec3& vec) const {
     return X * vec.X + Y * vec.Y + Z * vec.Z;
   }
 
-  double length() {
+  double length() const {
     return sqrt(X * X + Y * Y + Z * Z);
   }
 
   /*
    * operators
    */
-  vec3 operator+(const vec3& vec) {
+  vec3 operator+(const vec3& vec) const {
     return vec3(X + vec.X, Y + vec.Y, Z + vec.Z);
   }
-  vec3 operator-(const vec3& vec) {
+  vec3 operator-(const vec3& vec) const {
     return vec3(X - vec.X, Y - vec.Y, Z - vec.Z);
   }
 
-  vec3 operator*(double mul) {
+  vec3 operator*(double mul) const {
     return vec3(X * mul, Y * mul, Z * mul);
   }
 

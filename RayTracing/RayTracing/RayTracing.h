@@ -4,7 +4,7 @@
 #include <list>
 #include "objects.h"
 
-#define maxRefDepth 4
+#define maxRefDepth 1
 
 class scene {
 private:
@@ -14,13 +14,13 @@ private:
 	std::list<object*> objects;
 	std::list<light*> lights;
 
-	vec3 GetRefl(vec3& vec, vec3& normal);
-	vec3 RayCast(ray &ray, int currentDepth);
+	vec3 GetRefl(const vec3& vec, const vec3& normal) const;
+	vec3 RayCast(ray &ray, int currentDepth) const;
 public:
 	scene(const vec3& cam, const vec3& screenCenter, const std::list<object*>& objects, const std::list<light*>& lights);
 	scene(int width, int height, const vec3& cam, const vec3& screenCenter, const std::list<object*>& objects, const std::list<light*>& lights);
 
-	void render();
+	void render() const;
 };
 
 #endif

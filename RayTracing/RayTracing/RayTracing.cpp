@@ -21,11 +21,11 @@ scene::scene(int width, int height, const vec3& cam, const vec3& screenCenter, c
   this->lights = lights;
 }
 
-vec3 scene::GetRefl(vec3& vec, vec3& normal) {
+vec3 scene::GetRefl(const vec3& vec, const vec3& normal) const {
   return normal * (2 * vec.vecMul(normal)) - vec;
 }
 
-vec3 scene::RayCast(ray &rayToCast, int currentDepth) {
+vec3 scene::RayCast(ray &rayToCast, int currentDepth) const {
   vec3 pixelColor = backgroundColor; 
   material currentMtr;
   object* collObj = nullptr;
@@ -71,11 +71,11 @@ vec3 scene::RayCast(ray &rayToCast, int currentDepth) {
           // if go to light source -> add to pixel color
           if (oneLight->isNearLightSource(rayToLight) == 1) {
             vec3 lightDir = rayToLight.GetDir(),
-              normal = collObj->GetNormalToPoint(rayToCast),
-              Rm = GetRefl(lightDir, normal);
+                 normal = collObj->GetNormalToPoint(rayToCast),
+                 Rm = GetRefl(lightDir, normal);
 
             vec3 Idif = (oneLight->GetColor() * (currentMtr.GetKoefD() * std::max((double)0, lightDir.vecMul(normal)))),
-              Ispec = (oneLight->GetColor() * (currentMtr.GetKoefS() * pow(std::max((double)0, Rm.vecMul(rayToCast.GetDir() * (-1))), currentMtr.GetKoefAlpha())));
+                 Ispec = (oneLight->GetColor() * (currentMtr.GetKoefS() * pow(std::max((double)0, Rm.vecMul(rayToCast.GetDir() * (-1))), currentMtr.GetKoefAlpha())));
 
             pixelColor = pixelColor + Idif + Ispec;
           }
@@ -84,8 +84,8 @@ vec3 scene::RayCast(ray &rayToCast, int currentDepth) {
 
       // add reflection component
       if (currentMtr.GetKoefR() != 0 && currentDepth < maxRefDepth) {
-        vec3 normal = collObj->GetNormalToPoint(rayToCast), pos = rayToCast.GetPos(), dir = rayToCast.GetDir(), newRayDir = GetRefl(dir, normal) * (-1);
-        ray newRay = ray(pos, newRayDir);
+        vec3 newRayDir = GetRefl(rayToCast.GetDir(), collObj->GetNormalToPoint(rayToCast)) * (-1);
+        ray newRay = ray(rayToCast.GetPos(), newRayDir);
 
         pixelColor = pixelColor + RayCast(newRay, currentDepth + 1) * currentMtr.GetKoefR();
       }
@@ -99,7 +99,7 @@ vec3 scene::RayCast(ray &rayToCast, int currentDepth) {
   return pixelColor;
 }
 
-void scene::render() {
+void scene::render() const {
   labparams_t params = { (unsigned int)windowWidth, (unsigned int)windowHeight, 1 };
 
   if (LabInitWith(&params))    // Инициализация

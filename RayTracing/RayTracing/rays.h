@@ -3,8 +3,8 @@
 
 #include "vec3.h"
 
-#define MAX_RAY_DIST 4000
-#define RAY_STEP 0.02
+#define MAX_RAY_DIST 2500
+#define RAY_STEP 0.025
 
 const vec3 backgroundColor = vec3(0.3, 0.5, 0.7);
 
@@ -16,10 +16,10 @@ public:
   ray();
   ray(const vec3& startPos, const vec3& dir);
 
-  vec3 GetPos();
-  vec3 GetDir();
+  vec3 GetPos() const;
+  vec3 GetDir() const;
+  int GetRayDist() const;
 
-  int GetRayDist();
   void rayUpdate();
   void ChangeDir(const vec3& newDir);
 };

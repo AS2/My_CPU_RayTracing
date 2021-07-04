@@ -5,15 +5,15 @@ light::light(const vec3& pos, const vec3& color) {
   this->color = color;
 }
 
-vec3 light::GetPos() {
+vec3 light::GetPos() const {
   return pos;
 }
 
-vec3 light::GetColor() {
+vec3 light::GetColor() const {
   return color;
 }
 
-int light::isNearLightSource(ray& currentRay) {
+int light::isNearLightSource(const ray& currentRay) const {
   if ((pos - currentRay.GetPos()).length() <= RAY_STEP * 1.2)
     return 1;
   return 0;

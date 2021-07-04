@@ -15,7 +15,7 @@ material materials[] = {
 
 void SceneConstructor(void) {
   // make scene params
-  int width = 1280, height = 720;
+  int width = 640, height = 320;
   vec3 camera = vec3(5, 0, 0), screenCenter = vec3(0, 0, 0);
 
   // push here scene's objects
@@ -157,15 +157,14 @@ void SceneConstructor3(void) {
 
 void SceneConstructor4(void) {
   // make scene params
-  int width = 160, height = 80;
+  int width = 640, height = 320;
   vec3 camera = vec3(5, 0, 0), screenCenter = vec3(0, 0, 0);
 
   // push here scene's objects
   std::list<object*> objects;
   object* newObject;
 
-  //newObject = new sphere(vec3(-10.5, -3.5, -1.75), 0.8, materials[4]);
-  newObject = new boxAndSphere(vec3(-6, 0, -1.75), vec3(-4, -2, -1.75), vec3(-4, 2, -1.75), vec3(-6, 0, 1.0784), vec3(-4, 0, -0.3357), 1.75, materials[3], materials[1]);
+  newObject = new boxAndSphere(vec3(-4, 2, -1.75), vec3(-3, 1, -1.75), vec3(-3, 3, -1.75), vec3(-4, 2, -0.3357), vec3(-3, 2, -1.0429), 0.85, materials[3], materials[2]);
   objects.push_back(newObject);
 
   // push here scene's lights

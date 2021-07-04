@@ -24,13 +24,13 @@ class object {
 protected:
   material mater;
 
-  double cosVec3(vec3& v1, vec3& v2);
+  double cosVec3(const vec3& v1, const vec3& v2) const;
 public:
   object();
 
-  virtual material GetMaterial(ray& currentRay);
-  virtual int CheckCollision(ray& currentRay);
-  virtual vec3 GetNormalToPoint(ray& currentRay);
+  virtual material GetMaterial(const ray& currentRay) const;
+  virtual int CheckCollision(const ray& currentRay) const;
+  virtual vec3 GetNormalToPoint(const ray& currentRay) const;
 };
 
 class plane : public object {
@@ -39,8 +39,8 @@ private:
 public:
   plane(const vec3& normal, const vec3& center, const material& mtr);
 
-  int CheckCollision(ray& currentRay);
-  vec3 GetNormalToPoint(ray& currentRay);
+  int CheckCollision(const ray& currentRay) const;
+  vec3 GetNormalToPoint(const ray& currentRay) const;
 };
 
 class sphere : public object {
@@ -51,24 +51,24 @@ public:
   sphere();
   sphere(const vec3& center, const double& radius, const material& mtr);
 
-  vec3 GetCenter();
-  double GetRadius();
+  vec3 GetCenter() const;
+  double GetRadius() const;
 
-  int CheckCollision(ray& currentRay);
-  vec3 GetNormalToPoint(ray& currentRay);
+  int CheckCollision(const ray& currentRay) const;
+  vec3 GetNormalToPoint(const ray& currentRay) const;
 };
 
 class rectangle : public object {
 protected:
   vec3 LDcorn, RDcorn, LUcorn;
 
-  double ThreeVecMul(vec3& v1, vec3& v2, vec3& v3);
+  double ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3) const;
 public:
   rectangle();
   rectangle(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn, const material& mtr);
 
-  int CheckCollision(ray& currentRay);
-  vec3 GetNormalToPoint(ray& currentRay);
+  int CheckCollision(const ray& currentRay) const;
+  vec3 GetNormalToPoint(const ray& currentRay) const;
 };
 
 class chessRect : public rectangle {
@@ -78,7 +78,7 @@ private:
 public:
   chessRect(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn, const int& gridSizeW, const int& gridSizeH, const material& mtr1, const material& mtr2);
   
-  material GetMaterial(ray& currentRay);
+  material GetMaterial(const ray& currentRay) const;
 };
 
 class box : public rectangle {
@@ -89,10 +89,10 @@ public:
   box();
   box(const vec3& dot1, const vec3& dot2, const vec3& dot3, const vec3& dot4, const material& mtr);
 
-  int isInBox(vec3& vec);
+  int isInBox(const vec3& vec) const;
 
-  int CheckCollision(ray& currentRay);
-  vec3 GetNormalToPoint(ray& currentRay);
+  int CheckCollision(const ray& currentRay) const;
+  vec3 GetNormalToPoint(const ray& currentRay) const;
 };
 
 class boxAndSphere : public box {
@@ -103,9 +103,9 @@ protected:
 public:
   boxAndSphere(const vec3& dot1, const vec3& dot2, const vec3& dot3, const vec3& dot4, const vec3& center, const double& radius, const material& mtr1, const material& mtr2);
 
-  int CheckCollision(ray& currentRay);
-  vec3 GetNormalToPoint(ray& currentRay);
-  material GetMaterial(ray& currentRay);
+  int CheckCollision(const ray& currentRay) const;
+  vec3 GetNormalToPoint(const ray& currentRay) const;
+  material GetMaterial(const ray& currentRay) const;
 };
 
 class light {
@@ -114,10 +114,10 @@ private:
 public:
   light(const vec3& pos, const vec3& color);
 
-  vec3 GetPos();
-  vec3 GetColor();
+  vec3 GetPos() const;
+  vec3 GetColor() const;
 
-  int isNearLightSource(ray& currentRay);
+  int isNearLightSource(const ray& currentRay) const;
 };
 
 #endif
