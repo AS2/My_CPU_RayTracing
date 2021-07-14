@@ -4,6 +4,8 @@
 #include "vec3.h"
 #include "rays.h"
 
+#define MATH_PI 3.14159265358979323846
+
 class material {
 private:
   vec3 color;

@@ -2,8 +2,6 @@
 #include "model.h"
 #include "RayTracing.h"
 
-#define MATH_PI 3.14159265358979323846
-
 material materials[] = {
   material(),                                                         // metal - 0
   material(vec3(1, 1, 0), 0.35, 0.5, 0.1, 128, 0.4),                  // gold - 1
@@ -253,7 +251,7 @@ void SceneConstructor6(void) {
   std::list<object*> objects;
   object* newObject;
 
-  //newObject = new model(materials[3], "./Deer2.obj", 1, 0, 0, 0, vec3(-6, 0, 4));
+  //newObject = new model(materials[3], "./prism.obj", 1, 0, 0, 0, vec3(-6, 0, 0));
   //objects.push_back(newObject);
 
   newObject = new model(materials[3], "./Deer2.obj", 1, MATH_PI / 2, 0, MATH_PI / 4, vec3(-6.758, -3.85, -0.757));

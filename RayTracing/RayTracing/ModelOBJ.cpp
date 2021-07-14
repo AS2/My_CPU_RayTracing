@@ -40,18 +40,54 @@ int modelTriangle::CheckCollision(const ray& currentRay) const {
     return 0;
 
   // if in plane
+  /*
   vec3 n = this->GetNormalToPoint(currentRay);
   vec3 c1 = (currentRay.GetPos() - d1),
     c2 = (currentRay.GetPos() - d2),
     c3 = (currentRay.GetPos() - d3),
     v1 = (d2 - d1), v2 = (d3 - d2), v3 = (d1 - d3);
 
-  if ((n * crosMulVec3(c1, v1) >= 0 && n * crosMulVec3(c2, v2) >= 0 && n * crosMulVec3(c3, v3) >= 0) ||
-    (n * crosMulVec3(c1, v1) <= 0 && n * crosMulVec3(c2, v2) <= 0 && n * crosMulVec3(c3, v3) <= 0))
+  if ((n * crosMulVec3(c1, v1) > 0 && n * crosMulVec3(c2, v2) > 0 && n * crosMulVec3(c3, v3) > 0) ||
+    (n * crosMulVec3(c1, v1) < 0 && n * crosMulVec3(c2, v2) < 0 && n * crosMulVec3(c3, v3) < 0))
     return 1;
   else
     return 0;
+  */
+  vec3 v = currentRay.GetPos() - d1, xPart, yPart;
+  double alpha = acos(cosVec3(v, e1)), beta = acos(cosVec3(v, e2)), total = acos(cosVec3(e1, e2));
 
+  if (alpha > total || beta > total)
+    return 0;
+
+  if (alpha + beta >= MATH_PI / 2 - 0.0001 && alpha + beta <= MATH_PI / 2 + 0.0001) {
+    xPart = e1.normal() * (cosVec3(v, e1) * v.length());
+    yPart = e2.normal() * (cosVec3(v, e2) * v.length());
+  }
+  else {
+    xPart = e1.normal() * (cosVec3(v, e1) - 1.0f / tan(alpha + beta) * sin(alpha)) * v.length();
+    yPart = e2.normal() * (cosVec3(v, e2) - 1.0f / tan(alpha + beta) * sin(beta)) * v.length();
+  }
+
+  double a, b;
+
+  if (e1.getX() != 0)
+    a = xPart.getX() / e1.getX();
+  else if (e1.getY() != 0)
+    a = xPart.getY() / e1.getY();
+  else
+    a = xPart.getZ() / e1.getZ();
+
+  if (e2.getX() != 0)
+    b = yPart.getX() / e2.getX();
+  else if (e2.getY() != 0)
+    b = yPart.getY() / e2.getY();
+  else
+    b = yPart.getZ() / e2.getZ();
+
+  if (a >= 0 - RAY_STEP && b >= 0 - RAY_STEP && a + b <= 1 + RAY_STEP)
+    return 1;
+  else
+    return 0;
 }
 
 vec3 modelTriangle::GetNormalToPoint(const ray& currentRay) const {
