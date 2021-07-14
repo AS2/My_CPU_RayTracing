@@ -39,6 +39,12 @@ double object::cosVec3(const vec3& v1, const vec3& v2) const {
   return (v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ()) / (v1.length() * v2.length());
 }
 
+static vec3 crosMulVec3(vec3& v1, vec3& v2) {
+  return vec3((v1.getY() * v2.getZ() - v2.getY() * v1.getZ()),
+              (v1.getX() * v2.getZ() - v2.getX() * v1.getZ()) * (-1),
+              (v1.getX() * v2.getY() - v2.getX() * v1.getY()));
+}
+
 plane::plane(const vec3& normal, const vec3& center, const material& mtr) {
   this->mater = mtr;
   
@@ -344,4 +350,70 @@ material boxAndSphere::GetMaterial(const ray& currentRay) const {
     return mater;
   else
     return secondMtr;
+}
+
+triangle::triangle(const vec3& dot1, const vec3& dot2, const vec3& dot3, const material& mtr) {
+  this->mater = mtr;
+
+  d1 = dot1;
+  d2 = dot2;
+  d3 = dot3;
+}
+
+double triangle::ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3) const {
+  return (v1.getX() * v2.getY() * v3.getZ() + v1.getY() * v2.getZ() * v3.getX() + v1.getZ() * v2.getX() * v3.getY()) -
+         (v1.getZ() * v2.getY() * v3.getX() + v1.getY() * v2.getX() * v3.getZ() + v1.getX() * v2.getZ() * v3.getY());
+}
+
+int triangle::CheckCollision(const ray& currentRay) const {
+  vec3 e1 = (d2 - d1), e2 = (d3 - d1);
+
+  // if not in plane
+  double res1 = ThreeVecMul(currentRay.GetPos() - d1, e1, e2),
+         res2 = ThreeVecMul(currentRay.GetPos() + currentRay.GetDir() * RAY_STEP - d1, e1, e2);
+  if (res1 * res2 > 0)
+    return 0;
+
+  // if in plane
+  vec3 n = this->GetNormalToPoint(currentRay);
+  vec3 c1 = (currentRay.GetPos() - d1), 
+       c2 = (currentRay.GetPos() - d2),
+       c3 = (currentRay.GetPos() - d3),
+       v1 = (d2 - d1), v2 = (d3 - d2), v3 = (d1 - d3);
+
+  if ((n * crosMulVec3(c1, v1) >= 0 && n * crosMulVec3(c2, v2) >= 0 && n * crosMulVec3(c3, v3) >= 0) ||
+      (n * crosMulVec3(c1, v1) <= 0 && n * crosMulVec3(c2, v2) <= 0 && n * crosMulVec3(c3, v3) <= 0))
+    return 1;
+  else
+    return 0;
+}
+
+vec3 triangle::GetNormalToPoint(const ray& currentRay) const {
+  vec3 e1 = d2 - d1, e2 = d3 - d1, normal, dir = currentRay.GetDir();
+  double x, y, z;
+
+  if (e1.getX() == 0 && e2.getX() == 0) {
+    x = 1;
+    y = z = 0;
+  }
+  else if (e1.getY() == 0 && e2.getY() == 0) {
+    y = 1;
+    x = z = 0;
+  }
+  else if (e1.getZ() == 0 && e2.getZ() == 0) {
+    z = 1;
+    x = y = 0;
+  }
+  else {
+    x = 1;
+    y = (e1.getZ() * e2.getX() - e1.getX() * e2.getZ()) / (e2.getZ() * e1.getY() - e2.getY() * e1.getZ());
+    z = (e1.getY() * e2.getX() - e1.getX() * e2.getY()) / (e2.getZ() * e1.getY() - e2.getY() * e1.getZ());
+  }
+
+  normal = vec3(x, y, z).normal();
+
+  if (cosVec3(dir, normal) > 0)
+    normal = normal * (-1);
+
+  return normal;
 }

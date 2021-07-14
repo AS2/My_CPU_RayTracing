@@ -108,6 +108,18 @@ public:
   material GetMaterial(const ray& currentRay) const;
 };
 
+class triangle : public object {
+private:
+  vec3 d1, d2, d3;
+
+  double ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3) const;
+public:
+  triangle(const vec3& dot1, const vec3& dot2, const vec3& dot3, const material& mtr);
+
+  int CheckCollision(const ray& currentRay) const;
+  vec3 GetNormalToPoint(const ray& currentRay) const;
+};
+
 class light {
 private:
   vec3 pos, color;

@@ -4,7 +4,7 @@
 #include <list>
 #include "objects.h"
 
-#define maxRefDepth 1
+#define maxRefDepth 0
 
 class scene {
 private:

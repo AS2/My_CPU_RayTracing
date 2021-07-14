@@ -141,12 +141,15 @@
   <ItemGroup>
     <ClCompile Include="lights.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ModelOBJ.cpp" />
     <ClCompile Include="objects.cpp" />
     <ClCompile Include="rays.cpp" />
     <ClCompile Include="RayTracing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="labengine.h" />
+    <ClInclude Include="matr3.h" />
+    <ClInclude Include="model.h" />
     <ClInclude Include="objects.h" />
     <ClInclude Include="rays.h" />
     <ClInclude Include="RayTracing.h" />

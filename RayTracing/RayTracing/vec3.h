@@ -85,6 +85,10 @@ public:
     return vec3(X * mul, Y * mul, Z * mul);
   }
 
+  double operator*(const vec3& vec) const {
+    return X * vec.X + Y * vec.Y + Z * vec.Z;
+  }
+
   vec3& operator=(const vec3& vec) {
     if (this == &vec)
       return *this;

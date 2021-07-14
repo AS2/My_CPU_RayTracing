@@ -1,5 +1,8 @@
 #include <list>
+#include "model.h"
 #include "RayTracing.h"
+
+#define MATH_PI 3.14159265358979323846
 
 material materials[] = {
   material(),                                                         // metal - 0
@@ -191,6 +194,95 @@ void SceneConstructor4(void) {
     delete lght;
 }
 
+void SceneConstructor5(void) {
+  // make scene params
+  int width = 160, height = 80;
+  vec3 camera = vec3(5, 0, 0), screenCenter = vec3(0, 0, 0);
+
+  // push here scene's objects
+  std::list<object*> objects;
+  object* newObject;
+
+  newObject = new triangle(vec3(-6, 0, 2), vec3(-5, 0, 0), vec3(-6, 1, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, 2), vec3(-6, 1, 0), vec3(-7, 0, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, 2), vec3(-7, 0, 0), vec3(-6, -1, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, 2), vec3(-6, -1, 0), vec3(-5, 0, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, -2), vec3(-5, 0, 0), vec3(-6, 1, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, -2), vec3(-6, 1, 0), vec3(-7, 0, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, -2), vec3(-7, 0, 0), vec3(-6, -1, 0), materials[3]);
+  objects.push_back(newObject);
+  newObject = new triangle(vec3(-6, 0, -2), vec3(-6, -1, 0), vec3(-5, 0, 0), materials[3]);
+  objects.push_back(newObject);
+
+  // push here scene's lights
+  std::list<light*> lights;
+  light* newLight;
+
+  newLight = new light(vec3(-3, -4, 3), vec3(1, 1, 1));
+  lights.push_back(newLight);
+
+  newLight = new light(vec3(-3, 3, 2), vec3(0.4, 0.4, 1));
+  lights.push_back(newLight);
+
+  newLight = new light(vec3(-1, 4, -3), vec3(0.8, 0.3, 0.5));
+  lights.push_back(newLight);
+
+  // call scene constructor and render it
+  scene newScene = scene(width, height, camera, screenCenter, objects, lights);
+  newScene.render();
+
+  for (auto& obj : objects)
+    delete obj;
+
+  for (auto& lght : lights)
+    delete lght;
+}
+
+void SceneConstructor6(void) {
+  // make scene params
+  int width = 640, height = 320;
+  vec3 camera = vec3(5, 0, 0), screenCenter = vec3(0, 0, 0);
+
+  // push here scene's objects
+  std::list<object*> objects;
+  object* newObject;
+
+  //newObject = new model(materials[3], "./Deer2.obj", 1, 0, 0, 0, vec3(-6, 0, 4));
+  //objects.push_back(newObject);
+
+  newObject = new model(materials[3], "./Deer2.obj", 1, MATH_PI / 2, 0, MATH_PI / 4, vec3(-6.758, -3.85, -0.757));
+  objects.push_back(newObject);
+
+  // push here scene's lights
+  std::list<light*> lights;
+  light* newLight;
+
+  newLight = new light(vec3(-3, -4, 3), vec3(1, 1, 1));
+  lights.push_back(newLight);
+
+  newLight = new light(vec3(-3, 3, 2), vec3(0.4, 0.4, 1));
+  lights.push_back(newLight);
+
+  newLight = new light(vec3(-1, 4, -3), vec3(0.8, 0.3, 0.5));
+  lights.push_back(newLight);
+
+  // call scene constructor and render it
+  scene newScene = scene(width, height, camera, screenCenter, objects, lights);
+  newScene.render();
+
+  for (auto& obj : objects)
+    delete obj;
+
+  for (auto& lght : lights)
+    delete lght;
+}
+
 int main(void) {
-  SceneConstructor();
+  SceneConstructor6();
 }

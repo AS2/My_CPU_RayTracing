@@ -31,7 +31,13 @@
     <Filter Include="Файлы ресурсов\SceneObjects\Lights">
       <UniqueIdentifier>{57ac314f-6707-4593-80bd-e11d659cea5f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Файлы ресурсов\%27vec3%27 lib">
+    <Filter Include="Файлы ресурсов\SceneObjects\Models">
+      <UniqueIdentifier>{05c1b576-3da0-4878-afbd-a27b83e12809}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\SceneObjects\Models\OBJ">
+      <UniqueIdentifier>{1e499d1e-cc92-4f7a-92d0-490f0003c354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\myMath">
       <UniqueIdentifier>{5d4c9c60-53a6-40a3-8388-d2db1bd9c019}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -51,6 +57,9 @@
     <ClCompile Include="lights.cpp">
       <Filter>Файлы ресурсов\SceneObjects\Lights</Filter>
     </ClCompile>
+    <ClCompile Include="ModelOBJ.cpp">
+      <Filter>Файлы ресурсов\SceneObjects\Models\OBJ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="labengine.h">
@@ -66,7 +75,13 @@
       <Filter>Файлы ресурсов\SceneObjects</Filter>
     </ClInclude>
     <ClInclude Include="vec3.h">
-      <Filter>Файлы ресурсов\%27vec3%27 lib</Filter>
+      <Filter>Файлы ресурсов\myMath</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Файлы ресурсов\SceneObjects\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="matr3.h">
+      <Filter>Файлы ресурсов\myMath</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

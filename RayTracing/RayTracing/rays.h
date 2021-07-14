@@ -4,7 +4,7 @@
 #include "vec3.h"
 
 #define MAX_RAY_DIST 2500
-#define RAY_STEP 0.025
+#define RAY_STEP 0.03
 
 const vec3 backgroundColor = vec3(0.3, 0.5, 0.7);
 
