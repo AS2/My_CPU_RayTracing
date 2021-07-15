@@ -129,7 +129,7 @@ void scene::render() const {
         LabDrawFlush();
       }
     }
-    getchar();
+//    getchar();
     LabTerm();      // Завершение работы
   }
   return;

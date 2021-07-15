@@ -2,8 +2,11 @@
 #include <sstream>
 #include <iterator>
 
+#include <queue>
+
 #include "matr3.h"
 #include "model.h"
+
 
 static vec3 crosMulVec3(vec3& v1, vec3& v2) {
   return vec3((v1.getY() * v2.getZ() - v2.getY() * v1.getZ()),
@@ -40,19 +43,6 @@ int modelTriangle::CheckCollision(const ray& currentRay) const {
     return 0;
 
   // if in plane
-  /*
-  vec3 n = this->GetNormalToPoint(currentRay);
-  vec3 c1 = (currentRay.GetPos() - d1),
-    c2 = (currentRay.GetPos() - d2),
-    c3 = (currentRay.GetPos() - d3),
-    v1 = (d2 - d1), v2 = (d3 - d2), v3 = (d1 - d3);
-
-  if ((n * crosMulVec3(c1, v1) > 0 && n * crosMulVec3(c2, v2) > 0 && n * crosMulVec3(c3, v3) > 0) ||
-    (n * crosMulVec3(c1, v1) < 0 && n * crosMulVec3(c2, v2) < 0 && n * crosMulVec3(c3, v3) < 0))
-    return 1;
-  else
-    return 0;
-  */
   vec3 v = currentRay.GetPos() - d1, xPart, yPart;
   double alpha = acos(cosVec3(v, e1)), beta = acos(cosVec3(v, e2)), total = acos(cosVec3(e1, e2));
 
@@ -120,48 +110,136 @@ vec3 modelTriangle::GetNormalToPoint(const ray& currentRay) const {
   return normal;
 }
 
-ortoTree::ortoTree() {
+octoTree::octoTree() {
   minX = maxX = minY = maxY = minZ = maxZ = 0;
-  siblings = std::vector<ortoTree*>(8, nullptr);
+  siblings = std::vector<octoTree*>(8, nullptr);
 }
 
-ortoTree::ortoTree(const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn) {
+octoTree::octoTree(const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn) {
   minX = minXn;
   maxX = maxXn;
   minY = minYn;
   maxY = maxYn;
   minZ = minZn;
   maxZ = maxZn;
-  siblings = std::vector<ortoTree*>(8, nullptr);
+  siblings = std::vector<octoTree*>(8, nullptr);
 }
 
-ortoTree::ortoTree(std::list<modelTriangle>& trianglesToAdd, const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn) {
+void octoTree::SplitSibling(void) {
+  siblings = std::vector<octoTree*>(8, nullptr);
+  siblings[0] = new octoTree((minX + maxX) / 2, maxX, (minY + maxY) / 2, maxY, (minZ + maxZ) / 2, maxZ);
+  siblings[1] = new octoTree(minX, (minX + maxX) / 2, (minY + maxY) / 2, maxY, (minZ + maxZ) / 2, maxZ);
+  siblings[2] = new octoTree(minX, (minX + maxX) / 2, minY, (minY + maxY) / 2, (minZ + maxZ) / 2, maxZ);
+  siblings[3] = new octoTree((minX + maxX) / 2, maxX, minY, (minY + maxY) / 2, (minZ + maxZ) / 2, maxZ);
+  siblings[4] = new octoTree((minX + maxX) / 2, maxX, (minY + maxY) / 2, maxY, minZ, (minZ + maxZ) / 2);
+  siblings[5] = new octoTree(minX, (minX + maxX) / 2, (minY + maxY) / 2, maxY, minZ, (minZ + maxZ) / 2);
+  siblings[6] = new octoTree(minX, (minX + maxX) / 2, minY, (minY + maxY) / 2, minZ, (minZ + maxZ) / 2);
+  siblings[7] = new octoTree((minX + maxX) / 2, maxX, minY, (minY + maxY) / 2, minZ, (minZ + maxZ) / 2);
+
+  modelTriangle triangleToAdd;
+  while (!triangles.empty()) {
+    triangleToAdd = triangles.front();
+    triangles.pop_front();
+
+    for (int i = 0; i < 8; i++)
+      if (siblings[i]->IsTriangleInOctoTree(triangleToAdd) == 1)
+        siblings[i]->triangles.push_back(triangleToAdd);
+  }
+
+  for (int i = 0; i < 8; i++)
+    if (siblings[i]->triangles.size() > 25)
+      siblings[i]->SplitSibling();
+}
+
+// Cohen–Sutherland algorithm
+#define BOTTOM 1              // 000001
+#define TOP 2                 // 000010
+#define RIGHT 4               // 000100
+#define LEFT 8                // 001000
+#define NEAR 16               // 010000
+#define FAR 32                // 100000
+
+unsigned char octoTree::CountCode(const vec3& d1) const {
+  unsigned char d1Code = 0;
+
+  if (d1.getX() < minX)
+    d1Code += FAR;
+  else if (d1.getX() > maxX)
+    d1Code += NEAR;
+
+  if (d1.getY() < minY)
+    d1Code += LEFT;
+  else if (d1.getY() > maxY)
+    d1Code += RIGHT;
+
+  if (d1.getZ() < minZ)
+    d1Code += BOTTOM;
+  else if (d1.getZ() > maxZ)
+    d1Code += TOP;
+
+  return d1Code;
+}
+
+int octoTree::IsSegmentInOctoTree(const vec3& d1, const vec3& d2) const {
+  unsigned char d1Code = CountCode(d1), d2Code = CountCode(d2), totalCode = 0;
+
+  if (d1Code == 0 || d2Code == 0)
+    return 1;
+  else if ((d1Code & d2Code) == 0)
+    return 1;
+  else
+    return 0;
+}
+
+octoTree::octoTree(std::list<modelTriangle>& trianglesToAdd, const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn) {
   minX = minXn;
   maxX = maxXn;
   minY = minYn;
   maxY = maxYn;
   minZ = minZn;
   maxZ = maxZn;
-  siblings = std::vector<ortoTree*>(8, nullptr);
 
   triangles = trianglesToAdd;
- /* modelTriangle triangleToAdd;
-  while (!trianglesToAdd.empty()) {
-    triangleToAdd = trianglesToAdd.front();
-    trianglesToAdd.pop_front();
 
+  siblings = std::vector<octoTree*>(8, nullptr);
+  siblings[0] = new octoTree((minX + maxX) / 2, maxX, (minY + maxY) / 2, maxY, (minZ + maxZ) / 2, maxZ);
+  siblings[1] = new octoTree(minX, (minX + maxX) / 2, (minY + maxY) / 2, maxY, (minZ + maxZ) / 2, maxZ);
+  siblings[2] = new octoTree(minX, (minX + maxX) / 2, minY, (minY + maxY) / 2, (minZ + maxZ) / 2, maxZ);
+  siblings[3] = new octoTree((minX + maxX) / 2, maxX, minY, (minY + maxY) / 2, (minZ + maxZ) / 2, maxZ);
+  siblings[4] = new octoTree((minX + maxX) / 2, maxX, (minY + maxY) / 2, maxY, minZ, (minZ + maxZ) / 2);
+  siblings[5] = new octoTree(minX, (minX + maxX) / 2, (minY + maxY) / 2, maxY, minZ, (minZ + maxZ) / 2);
+  siblings[6] = new octoTree(minX, (minX + maxX) / 2, minY, (minY + maxY) / 2, minZ, (minZ + maxZ) / 2);
+  siblings[7] = new octoTree((minX + maxX) / 2, maxX, minY, (minY + maxY) / 2, minZ, (minZ + maxZ) / 2);
 
-  }*/
+  modelTriangle triangleToAdd;
+  while (!triangles.empty()) {
+    triangleToAdd = triangles.front();
+    triangles.pop_front();
+
+    for (int i = 0; i < 8; i++)
+      if (siblings[i]->IsTriangleInOctoTree(triangleToAdd) == 1)
+        siblings[i]->triangles.push_back(triangleToAdd);
+  }
+
+  for (int i = 0; i < 8; i++)
+    if (siblings[i]->triangles.size() > 4)
+      siblings[i]->SplitSibling();
 }
 
-void ortoTree::AddTriangle(const modelTriangle& newTriangle) {
-  triangles.push_back(newTriangle);
+int octoTree::IsTriangleInOctoTree(const modelTriangle& mt) const {
+  if (IsInOctoTree(mt.GetD1()) || IsInOctoTree(mt.GetD2()) || IsInOctoTree(mt.GetD3()))
+    return 1;
+  else if (IsSegmentInOctoTree(mt.GetD1(), mt.GetD2()) ||
+           IsSegmentInOctoTree(mt.GetD1(), mt.GetD3()) ||
+           IsSegmentInOctoTree(mt.GetD2(), mt.GetD3()))
+    return 1;
+  return 0;
 }
 
-int ortoTree::IsInOrtoTree(const ray& currentRay) const {
-  double x = currentRay.GetPos().getX(),
-         y = currentRay.GetPos().getY(),
-         z = currentRay.GetPos().getZ();
+int octoTree::IsInOctoTree(const vec3& v) const {
+  double x = v.getX(),
+         y = v.getY(),
+         z = v.getZ();
 
   if (x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ)
     return 1;
@@ -214,7 +292,6 @@ model::model(const material& mtr, std::string filename, const double& size, doub
       y = atof((*wordsInStream++).c_str());
       z = atof((*wordsInStream++).c_str());
 
-      //newVertex = (matrRot * vec3(x, y, z) + v1) * size;
       newVertex = (matrRot * vec3(x, y, z) + v1) * size;
 
       if (minX > newVertex.getX())
@@ -239,17 +316,12 @@ model::model(const material& mtr, std::string filename, const double& size, doub
     else if ((*wordsInStream) == "f") {
       wordsInStream++;
 
-      if (triangleNo == 1290)
-        int kek = 0;
-
       ind1 = ParseIntInStr((*wordsInStream++));
       ind2 = ParseIntInStr((*wordsInStream++));
       ind3 = ParseIntInStr((*wordsInStream++));
 
       if (ind1 - 1 < lastIndex && ind2 - 1 < lastIndex && ind3 - 1 < lastIndex)
         triangles.push_back(modelTriangle(vertexes[ind1 - 1], vertexes[ind2 - 1], vertexes[ind3 - 1]));
-      else
-        int kek = 0;
 
       while (wordsInStream != std::istream_iterator<std::string>()) {
         ind2 = ind3;
@@ -267,35 +339,107 @@ model::model(const material& mtr, std::string filename, const double& size, doub
   medY /= lastIndex;
   medZ /= lastIndex;
 
-  trianglesTree = ortoTree(triangles, minX, maxX, minY, maxY, minZ, maxZ);
+  trianglesTree = new octoTree(triangles, minX, maxX, minY, maxY, minZ, maxZ);
 }
 
-static unsigned char needToTakeNormal;
-static modelTriangle lastHitedTriangle;
-
 int model::CheckCollision(const ray& currentRay) const {
-  int no = 0;
+  octoTree* currentOctoTree = trianglesTree;
 
-  if (trianglesTree.IsInOrtoTree(currentRay) == 0)
+  if (trianglesTree->IsInOctoTree(currentRay.GetPos()) == 0)
     return 0;
+  else {
+    double x = currentRay.GetPos().getX(),
+           y = currentRay.GetPos().getY(),
+           z = currentRay.GetPos().getZ();
 
-  for (auto& trngl : trianglesTree.triangles) {
-    if (trngl.CheckCollision(currentRay) == 1) {
-      needToTakeNormal = 0;
-      lastHitedTriangle = trngl;
-      return 1;
+    while (currentOctoTree->siblings[0] != nullptr) {
+      if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[0];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[1];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[2];
+      else if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[3];
+      else if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[4];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[5];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[6];
+      else
+        currentOctoTree = currentOctoTree->siblings[7];
     }
-
-    no++;
   }
+
+  for (auto& trngl : currentOctoTree->triangles)
+    if (trngl.CheckCollision(currentRay) == 1)
+      return 1;
+   
   return 0;
 }
 
 vec3 model::GetNormalToPoint(const ray& currentRay) const {
-  if (needToTakeNormal == 1) {
-    needToTakeNormal = 0;
-    return lastHitedTriangle.GetNormalToPoint(currentRay);
+  octoTree* currentOctoTree = trianglesTree;
+  unsigned char needToTakeNormal = 0;
+  modelTriangle lastHitedTriangle;
+
+
+  if (trianglesTree->IsInOctoTree(currentRay.GetPos()) == 0)
+    return vec3(1, 0, 0);
+  else {
+    double x = currentRay.GetPos().getX(),
+           y = currentRay.GetPos().getY(),
+           z = currentRay.GetPos().getZ();
+
+    while (currentOctoTree->siblings[0] != nullptr) {
+      if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[0];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[1];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[2];
+      else if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[3];
+      else if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[4];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[5];
+      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
+        currentOctoTree = currentOctoTree->siblings[6];
+      else
+        currentOctoTree = currentOctoTree->siblings[7];
+    }
   }
+
+  for (auto& trngl : currentOctoTree->triangles) {
+    if (trngl.CheckCollision(currentRay) == 1) {
+      needToTakeNormal = 1;
+      lastHitedTriangle = trngl;
+      break;
+    }
+  }
+
+  if (needToTakeNormal == 1)
+    return lastHitedTriangle.GetNormalToPoint(currentRay);
   else
     return vec3(1, 0, 0);
+}
+
+void model::DeleteObject(void) const {
+  std::queue<octoTree*> nodesToDelete;
+  octoTree* nodeToDelete;
+
+  nodesToDelete.push(trianglesTree);
+  while (!nodesToDelete.empty()) {
+    nodeToDelete = nodesToDelete.front();
+    nodesToDelete.pop();
+
+    if (nodeToDelete != nullptr) {
+      for (int i = 0; i < 8; i++)
+        nodesToDelete.push(nodeToDelete->siblings[i]);
+
+      delete nodeToDelete;
+    }
+  }
 }

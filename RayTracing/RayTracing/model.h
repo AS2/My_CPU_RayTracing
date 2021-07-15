@@ -18,29 +18,37 @@ public:
   modelTriangle();
   modelTriangle(const vec3& dot1, const vec3& dot2, const vec3& dot3);
 
+  vec3 GetD1(void) const { return d1; };
+  vec3 GetD2(void) const { return d2; };
+  vec3 GetD3(void) const { return d3; };
+
   int CheckCollision(const ray& currentRay) const;
   vec3 GetNormalToPoint(const ray& currentRay) const;
 };
 
-class ortoTree {
+class octoTree {
+private:
+  unsigned char CountCode(const vec3& d1) const;
+  int IsSegmentInOctoTree(const vec3& d1, const vec3& d2) const;
+
+  void SplitSibling(void);
 public:
   double minX, maxX, minY, maxY, minZ, maxZ;
 
   std::list<modelTriangle> triangles;
-  std::vector<ortoTree*> siblings;
+  std::vector<octoTree*> siblings;
 
-  ortoTree();
-  ortoTree(const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn);
-  ortoTree(std::list<modelTriangle>& trianglesToAdd, const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn);
+  octoTree();
+  octoTree(const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn);
+  octoTree(std::list<modelTriangle>& trianglesToAdd, const double& minXn, const double& maxXn, const double& minYn, const double& maxYn, const double& minZn, const double& maxZn);
 
-  void AddTriangle(const modelTriangle& newTriangle);
-
-  int IsInOrtoTree(const ray& currentRay) const;
+  int IsTriangleInOctoTree(const modelTriangle& mt) const;
+  int IsInOctoTree(const vec3& v) const;
 };
 
 class model : public object {
 private:
-  ortoTree trianglesTree;
+  octoTree* trianglesTree;
 
   int ParseIntInStr(std::string str);
 public:
@@ -48,6 +56,8 @@ public:
 
   int CheckCollision(const ray& currentRay) const;
   vec3 GetNormalToPoint(const ray& currentRay) const;
+
+  void DeleteObject(void) const;
 };
 
 #endif // __model_h__

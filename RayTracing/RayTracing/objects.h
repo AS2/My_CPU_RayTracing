@@ -33,6 +33,8 @@ public:
   virtual material GetMaterial(const ray& currentRay) const;
   virtual int CheckCollision(const ray& currentRay) const;
   virtual vec3 GetNormalToPoint(const ray& currentRay) const;
+
+  virtual void DeleteObject(void) const { return; };
 };
 
 class plane : public object {
