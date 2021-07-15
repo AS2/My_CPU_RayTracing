@@ -30,9 +30,9 @@ protected:
 public:
   object();
 
-  virtual material GetMaterial(const ray& currentRay) const;
-  virtual int CheckCollision(const ray& currentRay) const;
-  virtual vec3 GetNormalToPoint(const ray& currentRay) const;
+  virtual material GetMaterial(const vec3& point, const vec3& dir, const ray& rayToCast = ray()) const;
+  virtual int CheckCollision(const ray& currentRay, vec3 &collisionDot, const int& isFindLight = 0) const;
+  virtual vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
 
   virtual void DeleteObject(void) const { return; };
 };
@@ -43,8 +43,8 @@ private:
 public:
   plane(const vec3& normal, const vec3& center, const material& mtr);
 
-  int CheckCollision(const ray& currentRay) const;
-  vec3 GetNormalToPoint(const ray& currentRay) const;
+  int CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
+  vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
 };
 
 class sphere : public object {
@@ -58,21 +58,23 @@ public:
   vec3 GetCenter() const;
   double GetRadius() const;
 
-  int CheckCollision(const ray& currentRay) const;
-  vec3 GetNormalToPoint(const ray& currentRay) const;
+  int CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
+  vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
+
+  int CheckInnerSphereCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
 };
 
 class rectangle : public object {
 protected:
-  vec3 LDcorn, RDcorn, LUcorn;
+  vec3 LDcorn, RDcorn, LUcorn, normal;
 
   double ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3) const;
 public:
   rectangle();
   rectangle(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn, const material& mtr);
 
-  int CheckCollision(const ray& currentRay) const;
-  vec3 GetNormalToPoint(const ray& currentRay) const;
+  int CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
+  vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
 };
 
 class chessRect : public rectangle {
@@ -82,7 +84,7 @@ private:
 public:
   chessRect(const vec3& LDcorn, const vec3& RDcorn, const vec3& LUcorn, const int& gridSizeW, const int& gridSizeH, const material& mtr1, const material& mtr2);
   
-  material GetMaterial(const ray& currentRay) const;
+  material GetMaterial(const vec3& point, const vec3& dir, const ray& rayToCast = ray()) const;
 };
 
 class box : public rectangle {
@@ -95,8 +97,8 @@ public:
 
   int isInBox(const vec3& vec) const;
 
-  int CheckCollision(const ray& currentRay) const;
-  vec3 GetNormalToPoint(const ray& currentRay) const;
+  int CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
+  vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
 };
 
 class boxAndSphere : public box {
@@ -107,21 +109,21 @@ protected:
 public:
   boxAndSphere(const vec3& dot1, const vec3& dot2, const vec3& dot3, const vec3& dot4, const vec3& center, const double& radius, const material& mtr1, const material& mtr2);
 
-  int CheckCollision(const ray& currentRay) const;
-  vec3 GetNormalToPoint(const ray& currentRay) const;
-  material GetMaterial(const ray& currentRay) const;
+  int CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
+  vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
+  material GetMaterial(const vec3& point, const vec3& dir, const ray& rayToCast = ray()) const;
 };
 
 class triangle : public object {
 private:
-  vec3 d1, d2, d3;
+  vec3 d1, d2, d3, normal;
 
   double ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3) const;
 public:
   triangle(const vec3& dot1, const vec3& dot2, const vec3& dot3, const material& mtr);
 
-  int CheckCollision(const ray& currentRay) const;
-  vec3 GetNormalToPoint(const ray& currentRay) const;
+  int CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight = 0) const;
+  vec3 GetNormalToPoint(const vec3& point, const vec3& dir = vec3(), const ray& rayToCast = ray()) const;
 };
 
 class light {
@@ -133,7 +135,7 @@ public:
   vec3 GetPos() const;
   vec3 GetColor() const;
 
-  int isNearLightSource(const ray& currentRay) const;
+  double DistToLightSource(const vec3& pos) const;
 };
 
 #endif

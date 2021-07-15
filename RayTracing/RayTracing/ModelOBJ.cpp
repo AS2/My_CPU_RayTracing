@@ -15,13 +15,17 @@ static vec3 crosMulVec3(vec3& v1, vec3& v2) {
 }
 
 modelTriangle::modelTriangle() {
-  d1 = d2 = d3 = vec3();
+  d1 = d2 = d3 = normal = vec3();
 }
 
 modelTriangle::modelTriangle(const vec3& dot1, const vec3& dot2, const vec3& dot3) {
   d1 = dot1;
   d2 = dot2;
   d3 = dot3;
+
+  vec3 e1 = d2 - d1, e2 = d3 - d1;
+
+  normal = crosMulVec3(e2, e1).normal();
 }
 
 double modelTriangle::cosVec3(const vec3& v1, const vec3& v2) const {
@@ -33,17 +37,18 @@ double modelTriangle::ThreeVecMul(const vec3& v1, const vec3& v2, const vec3& v3
     (v1.getZ() * v2.getY() * v3.getX() + v1.getY() * v2.getX() * v3.getZ() + v1.getX() * v2.getZ() * v3.getY());
 }
 
-int modelTriangle::CheckCollision(const ray& currentRay) const {
-  vec3 e1 = (d2 - d1), e2 = (d3 - d1);
-
+int modelTriangle::CheckCollision(const ray& currentRay, vec3& collisionDot) const {
   // if not in plane
-  double res1 = ThreeVecMul(currentRay.GetPos() - d1, e1, e2),
-    res2 = ThreeVecMul(currentRay.GetPos() + currentRay.GetDir() * RAY_STEP - d1, e1, e2);
-  if (res1 * res2 > 0)
+  if (currentRay.GetDir() * normal == 0)
+    return 0;
+
+  double t = (normal * d1 - currentRay.GetPos() * normal) / (currentRay.GetDir() * normal);
+
+  if (t <= 0 || t > RAY_INF)
     return 0;
 
   // if in plane
-  vec3 v = currentRay.GetPos() - d1, xPart, yPart;
+  vec3 e1 = (d2 - d1), e2 = (d3 - d1), v = (currentRay.GetPos() + currentRay.GetDir() * t) - d1, xPart, yPart;
   double alpha = acos(cosVec3(v, e1)), beta = acos(cosVec3(v, e2)), total = acos(cosVec3(e1, e2));
 
   if (alpha > total || beta > total)
@@ -74,40 +79,21 @@ int modelTriangle::CheckCollision(const ray& currentRay) const {
   else
     b = yPart.getZ() / e2.getZ();
 
-  if (a >= 0 - RAY_STEP && b >= 0 - RAY_STEP && a + b <= 1 + RAY_STEP)
+  if (a >= 0 && b >= 0 && a + b <= 1) {
+    collisionDot = currentRay.GetPos() + currentRay.GetDir() * (t - RAY_SHIFT);
+    if ((collisionDot - d1) * (currentRay.GetPos() - d1) < 0)
+      collisionDot = currentRay.GetPos() + currentRay.GetDir() * (t + RAY_SHIFT);
     return 1;
+  }
   else
     return 0;
 }
 
-vec3 modelTriangle::GetNormalToPoint(const ray& currentRay) const {
-  vec3 e1 = d2 - d1, e2 = d3 - d1, normal, dir = currentRay.GetDir();
-  double x, y, z;
-
-  if (e1.getX() == 0 && e2.getX() == 0) {
-    x = 1;
-    y = z = 0;
-  }
-  else if (e1.getY() == 0 && e2.getY() == 0) {
-    y = 1;
-    x = z = 0;
-  }
-  else if (e1.getZ() == 0 && e2.getZ() == 0) {
-    z = 1;
-    x = y = 0;
-  }
-  else {
-    x = 1;
-    y = (e1.getZ() * e2.getX() - e1.getX() * e2.getZ()) / (e2.getZ() * e1.getY() - e2.getY() * e1.getZ());
-    z = (e1.getY() * e2.getX() - e1.getX() * e2.getY()) / (e2.getZ() * e1.getY() - e2.getY() * e1.getZ());
-  }
-
-  normal = vec3(x, y, z).normal();
-
-  if (cosVec3(dir, normal) > 0)
-    normal = normal * (-1);
-
-  return normal;
+vec3 modelTriangle::GetNormalToPoint(const vec3& point, const vec3& dir, const ray& rayToCast) const {
+  if (cosVec3(normal, dir) > 0)
+    return normal.normal() * (-1);
+  else
+    return normal.normal();
 }
 
 octoTree::octoTree() {
@@ -147,7 +133,7 @@ void octoTree::SplitSibling(void) {
   }
 
   for (int i = 0; i < 8; i++)
-    if (siblings[i]->triangles.size() > 25)
+    if (siblings[i]->triangles.size() > 20)
       siblings[i]->SplitSibling();
 }
 
@@ -159,27 +145,26 @@ void octoTree::SplitSibling(void) {
 #define NEAR 16               // 010000
 #define FAR 32                // 100000
 
-unsigned char octoTree::CountCode(const vec3& d) const {
-  unsigned char dCode = 0;
+unsigned char octoTree::CountCode(const vec3& d1) const {
+  unsigned char d1Code = 0;
 
-  if (d.getX() < minX)
-    dCode += FAR;
-  else if (d.getX() > maxX)
-    dCode += NEAR;
+  if (d1.getX() < minX)
+    d1Code += FAR;
+  else if (d1.getX() > maxX)
+    d1Code += NEAR;
 
-  if (d.getY() < minY)
-    dCode += LEFT;
-  else if (d.getY() > maxY)
-    dCode += RIGHT;
+  if (d1.getY() < minY)
+    d1Code += LEFT;
+  else if (d1.getY() > maxY)
+    d1Code += RIGHT;
 
-  if (d.getZ() < minZ)
-    dCode += BOTTOM;
-  else if (d.getZ() > maxZ)
-    dCode += TOP;
+  if (d1.getZ() < minZ)
+    d1Code += BOTTOM;
+  else if (d1.getZ() > maxZ)
+    d1Code += TOP;
 
-  return dCode;
+  return d1Code;
 }
-// end))
 
 int octoTree::IsSegmentInOctoTree(const vec3& d1, const vec3& d2) const {
   unsigned char d1Code = CountCode(d1), d2Code = CountCode(d2), totalCode = 0;
@@ -201,7 +186,7 @@ octoTree::octoTree(std::list<modelTriangle>& trianglesToAdd, const double& minXn
   maxZ = maxZn;
 
   triangles = trianglesToAdd;
-
+  
   this->SplitSibling();
 }
 
@@ -321,68 +306,60 @@ model::model(const material& mtr, std::string filename, const double& size, doub
   trianglesTree = new octoTree(triangles, minX, maxX, minY, maxY, minZ, maxZ);
 }
 
-int model::FindCollisionTriangle(const ray& currentRay, vec3 &newNormal) const {
-  octoTree* currentOctoTree = trianglesTree;
-  unsigned char needToTakeNormal = 0;
-  modelTriangle lastHitedTriangle;
+static modelTriangle lastHittenTriangle;
 
+int model::CheckCollision(const ray& currentRay, vec3& collisionDot, const int& isFindLight) const {
+  octoTree* currentOctoTree;
+  std::queue<octoTree*> octosToSeek;
+  std::list<octoTree*> octosToCheck;
+  vec3 d1 = currentRay.GetPos(), d2 = currentRay.GetPos() + currentRay.GetDir() * RAY_INF;
+  std::list<modelTriangle> trianglesToCheck;
 
-  if (trianglesTree->IsInOctoTree(currentRay.GetPos()) == 0) {
-    newNormal = vec3(1, 0, 0);
+  if (trianglesTree->IsSegmentInOctoTree(d1, d2) == 0)
     return 0;
-  }
   else {
-    double x = currentRay.GetPos().getX(),
-      y = currentRay.GetPos().getY(),
-      z = currentRay.GetPos().getZ();
+    octosToSeek.push(trianglesTree);
 
-    while (currentOctoTree->siblings[0] != nullptr) {
-      if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[0];
-      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[1];
-      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[2];
-      else if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z >= (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[3];
-      else if (x >= (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[4];
-      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y >= (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[5];
-      else if (x < (currentOctoTree->maxX + currentOctoTree->minX) / 2 && y < (currentOctoTree->maxY + currentOctoTree->minY) / 2 && z < (currentOctoTree->maxZ + currentOctoTree->minZ) / 2)
-        currentOctoTree = currentOctoTree->siblings[6];
+    while (octosToSeek.size() != 0) {
+      currentOctoTree = octosToSeek.front();
+      octosToSeek.pop();
+
+      if (currentOctoTree->siblings[0] != nullptr) {
+        for (int i = 0; i < 8; i++)
+          if (currentOctoTree->siblings[i]->IsSegmentInOctoTree(d1, d2))
+            octosToSeek.push(currentOctoTree->siblings[i]);
+      }
       else
-        currentOctoTree = currentOctoTree->siblings[7];
+        octosToCheck.push_back(currentOctoTree);
     }
   }
 
-  for (auto& trngl : currentOctoTree->triangles) {
-    if (trngl.CheckCollision(currentRay) == 1) {
-      needToTakeNormal = 1;
-      lastHitedTriangle = trngl;
-      break;
-    }
-  }
+  vec3 collDot, nearestCollDot;
+  modelTriangle nearestTriangle;
+  double minDist = RAY_INF;
+  for (auto& oct : octosToCheck)
+    for (auto& trngl : oct->triangles)
+      if (trngl.CheckCollision(currentRay, collDot) == 1) {
+        if ((collDot - currentRay.GetPos()).length() < minDist) {
+          minDist = (collDot - currentRay.GetPos()).length();
+          nearestTriangle = trngl;
+          nearestCollDot = collDot;
 
-  if (needToTakeNormal == 1) {
-    newNormal = lastHitedTriangle.GetNormalToPoint(currentRay);
+          if (isFindLight == 0)
+            lastHittenTriangle = nearestTriangle;
+        }
+      }
+   
+  if (minDist == RAY_INF)
+    return 0;
+  else {
+    collisionDot = nearestCollDot;
     return 1;
   }
-  else {
-    newNormal = vec3(1, 0, 0);
-    return 0;
-  }
 }
 
-int model::CheckCollision(const ray& currentRay) const {
-  vec3 newNormal;
-  return FindCollisionTriangle(currentRay, newNormal);
-}
-
-vec3 model::GetNormalToPoint(const ray& currentRay) const {
-  vec3 newNormal;
-  FindCollisionTriangle(currentRay, newNormal);
-  return newNormal;
+vec3 model::GetNormalToPoint(const vec3& point, const vec3& dir, const ray& rayToCast) const {
+  return lastHittenTriangle.GetNormalToPoint(point, dir, rayToCast);
 }
 
 void model::DeleteObject(void) const {

@@ -13,8 +13,6 @@ vec3 light::GetColor() const {
   return color;
 }
 
-int light::isNearLightSource(const ray& currentRay) const {
-  if ((pos - currentRay.GetPos()).length() <= RAY_STEP * 1.2)
-    return 1;
-  return 0;
+double light::DistToLightSource(const vec3& pos) const {
+  return (this->pos - pos).length();
 }
