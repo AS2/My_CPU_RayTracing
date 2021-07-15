@@ -289,7 +289,7 @@ void SceneConstructor6(void) {
 
 void SceneConstructor7(void) {
   // make scene params
-  int width = 1, height = 1;
+  int width = 160, height = 80;
   vec3 camera = vec3(5, 0, 0), screenCenter = vec3(0, 0, 0);
 
   // push here scene's objects

@@ -51,6 +51,7 @@ private:
   octoTree* trianglesTree;
 
   int ParseIntInStr(std::string str);
+  int FindCollisionTriangle(const ray& currentRay, vec3& newNormal) const;
 public:
   model(const material& mtr, std::string filename, const double& size, double alpha = 0, double beta = 0, double gamma = 0, vec3 v1 = vec3());
 
